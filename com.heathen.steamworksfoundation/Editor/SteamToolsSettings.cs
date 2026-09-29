@@ -387,8 +387,19 @@ namespace Heathen.SteamworksIntegration
             var bytes = System.Text.Encoding.UTF8.GetBytes(text ?? string.Empty);
             for (int i = 0; i < bytes.Length; i++)
             {
-                hash ^= bytes[i];
-                hash *= prime;
+                if (bytes[i] == '\r' && (i + 1 >= bytes.Length || bytes[i + 1] != '\n') ||
+                    bytes[i] == '\n' && (i == 0                || bytes[i - 1] != '\r')   ) // singular \r and singular \n, treat as \r\n
+                {
+                    hash ^= (byte)'\r';
+                    hash *= prime;
+                    hash ^= (byte)'\n';
+                    hash *= prime;
+                }
+                else
+                {
+                    hash ^= bytes[i];
+                    hash *= prime;
+                }
             }
             return hash.ToString("x16");
         }
